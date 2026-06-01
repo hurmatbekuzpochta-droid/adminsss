@@ -1,6 +1,6 @@
 {
-  "name": "Salom Greeting",
-  "description": "A beautifully designed, ambient greeting application featuring peaceful micro-interactions.",
-  "requestFramePermissions": [],
+  "name": "Telegram Web cPanel Webapp",
+  "description": "Telegram Web Clone. cPanel uchun maxsus tayyorlangan, ovozli xabar, rasm, lokatsiya va real-time chat prototiplari va PHP/MySQL manba kodlari bilan.",
+  "requestFramePermissions": ["camera", "microphone", "geolocation"],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

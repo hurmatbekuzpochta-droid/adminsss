@@ -275,19 +275,73 @@ export default function App() {
 
     // Trigger instant trigger responses for Bot
     if (activeContactId === "bot-1" && type === 'text') {
+      const loadingId = `bot-loading-${Date.now()}`;
+      
       setTimeout(() => {
-        const matchingProverb = PRESET_PROVERBS[Math.floor(Math.random() * PRESET_PROVERBS.length)];
-        const botReply: Message = {
-          id: `bot-reply-${Date.now()}`,
+        const loadingMsg: Message = {
+          id: loadingId,
           senderId: "bot-1",
           senderName: "Hikmatlar AI Bot",
-          text: `Sizga atalgan sharqona hikmat: \n“${matchingProverb}”`,
+          text: "Hikmatlar AI Bot o'ylamoqda... ✍️",
           mediaType: 'text',
           timestamp: new Date(),
-          read: true
+          read: false
         };
-        setMessages(prev => [...prev, botReply]);
-      }, 1000);
+        setMessages(prev => [...prev, loadingMsg]);
+        
+        // Contextual messaging history payload
+        const relevantHistory = messages
+          .filter(m => m.senderId === "bot-1" || m.senderId === userProfile.nickname)
+          .slice(-6)
+          .map(m => ({
+            role: m.senderId === "bot-1" ? "model" : "user",
+            text: m.text
+          }));
+
+        fetch("/api/chat", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            prompt: textToSend,
+            history: relevantHistory
+          })
+        })
+        .then(res => {
+          if (!res.ok) throw new Error("Gemini API call failed");
+          return res.json();
+        })
+        .then(data => {
+          setMessages(prev => {
+            const cleared = prev.filter(m => m.id !== loadingId);
+            return [...cleared, {
+              id: `bot-reply-${Date.now()}`,
+              senderId: "bot-1",
+              senderName: "Hikmatlar AI Bot",
+              text: data.reply || "Mashalloh! Muloqotimiz davom etadi.",
+              mediaType: 'text',
+              timestamp: new Date(),
+              read: true
+            }];
+          });
+        })
+        .catch(err => {
+          console.error("Gemini chatbot error:", err);
+          setMessages(prev => {
+            const cleared = prev.filter(m => m.id !== loadingId);
+            return [...cleared, {
+              id: `bot-reply-${Date.now()}`,
+              senderId: "bot-1",
+              senderName: "Hikmatlar AI Bot",
+              text: "Ulanishda xatolik yuz berdi. Iltimos, AI Studio Secrets panelida GEMINI_API_KEY kaliti mavjudligini tasdiqlang yoki sozlamalardan tekshiring.",
+              mediaType: 'text',
+              timestamp: new Date(),
+              read: true
+            }];
+          });
+        });
+      }, 300);
     }
     
     // Toggle view on mobile to show messaging area
@@ -832,7 +886,10 @@ export default function App() {
                       {/* Fast Proverb Trigger */}
                       <button 
                         id="fast-wisdom-tip"
-                        onClick={() => handleSendMessage(`AI sharqona hikmatini o'ylamoqda...`, 'text')}
+                        onClick={() => {
+                          setActiveContactId("bot-1");
+                          handleSendMessage("Menga bitta chiroyli sharqona o'zbek maqoli yoki dono donishmandlik hikmati aytib bering.", 'text');
+                        }}
                         className="text-[10px] text-emerald-400 font-bold flex items-center gap-1 hover:underline"
                       >
                         <Sparkles className="w-3 h-3 animate-pulse" />
