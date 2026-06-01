@@ -1,0 +1,70 @@
+# TELEGRAM CLONE FOR CPANEL (PHP/HTML/MYSQL) PROFESSIONAL PROMPT
+# Uzbek & English optimized instructions for robust deployment
+
+### 1. INTRO / MAQSAD (GOAL)
+Yaratmoqchi bo'lgan saytingiz: Telegram dizayniga o'xshash, cPanel hosting (PHP, MySQL) uchun yozilgan, mukammal, to'liq moslashuvchan (responsive) video, audio, rasm va lokatsiyalar yuboradigan, har bir xabar chiroyli modallarda chiqadigan mukammal chat sayti.
+
+---
+
+### 2. CORE SYSTEM REQUIREMENTS (Tizim Talablari)
+- **Backend:** PHP 7.4+ (MySQL PDO orqali xavfsiz ulanish, SQL Injection-ga qarshi mustahkam himoyalangan).
+- **Database:** MySQL (Foydalanuvchilar, Xabarlar, AdminSozlamalari jadvali).
+- **Frontend:** HTML5, CSS3 (Tailwind CSS yoki Telegram Dark/Light o'xshash dizayn), to'liq JavaScript (VanillaJS yoki modern optimallashtirilgan AJAX).
+- **Responsive:** Mobil ekranlarda chapga-o'ngga surilib ketmaydigan, to'liq moslashadigan, 100vh formatdagi interfeys.
+- **Media:** Ovozlarni yozish yozgichi, rasm/video yuklash, xaritadan lokatsiya tanlash, rasm ustiga bosganda kattalashib chiroyli chiqishi.
+- **Xabarlarni O'chirish:** User o'zining va hammaning xabarini bazadan o'chira olishi.
+- **Online/Offline Status:** Oxirgi faollik (timestamp) orqali foydalanuvchilar holatini aniq ko'rsatish (masalan, 30 soniya faol bo'lmagan foydalanuvchi "offline" ko'rinadi).
+
+---
+
+### 3. DATABASE SCHEMA (SQL Jadval tuzilishi)
+```sql
+CREATE TABLE IF NOT EXISTS `users` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `username` VARCHAR(50) UNIQUE NOT NULL,
+  `nickname` VARCHAR(50) UNIQUE NOT NULL,
+  `fullname` VARCHAR(100) NOT NULL,
+  `password_hash` VARCHAR(255) NOT NULL,
+  `avatar` VARCHAR(255) DEFAULT 'default_avatar.png',
+  `last_active` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `is_admin` TINYINT(1) DEFAULT 0
+);
+
+CREATE TABLE IF NOT EXISTS `messages` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `sender_id` INT NOT NULL,
+  `message_text` TEXT DEFAULT NULL,
+  `media_url` VARCHAR(255) DEFAULT NULL,
+  `media_type` ENUM('text', 'photo', 'video', 'voice', 'location') DEFAULT 'text',
+  `latitude` DECIMAL(10, 8) DEFAULT NULL,
+  `longitude` DECIMAL(11, 8) DEFAULT NULL,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (`sender_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS `settings` (
+  `id` INT PRIMARY KEY AUTO_INCREMENT,
+  `chat_wallpaper` VARCHAR(255) DEFAULT 'default_pattern',
+  `allow_voice` TINYINT(1) DEFAULT 1,
+  `allow_video` TINYINT(1) DEFAULT 1
+);
+```
+
+---
+
+### 4. CORE CODE LAYOUT FOR CPANEL (Dastur Fayllari)
+1. **`config.php`** — Ma'lumotlar bazasiga PDO orqali xavfsiz ulanish:
+   - PHP PDO bilan host, dbname, user, password boshqaradi.
+2. **`api.php`** — Barcha AJAX so'rovlari uchun REST API:
+   - Yangi xabarlarni bazaga yozish (fayl, video, audio yoki lokatsiya).
+   - Real-time holatda xabarlarni long-polling orqali yuklash.
+   - Xabarni bazadan haqqoniy o'chirib yuborish.
+   - Status (Online/Offline) tekshirish: `UPDATE users SET last_active = NOW() WHERE id = ?`.
+3. **`index.php`** — Asosiy chat interfeysi:
+   - Login qilmagan bo'lsa kirish oynasi, birinchi kirishda ism, familiya va taxallus (nickname) so'raydi.
+   - Telegram Mobile kabi chiroyli sidebar va chat oynasi (mobil telefonda sidebar chapga surilganda bemalol chat ochiladi).
+   - Audio yozish uchun JavaScript `MediaRecorder` API orqali ovoz yozib, AJAX orqali `api.php` ga POST so'rov bilan yuborish.
+   - Rasm kattalashishi: Magnific Popup yoki sodda Tailwind CSS modal.
+4. **`admin.php`** — Admin panel boshqaruvi:
+   - Google OAuth / maxsus token orqali kirish.
+   - Chat fon rasmini o'zgartirish, bazani tozalash, xabarlar statistikasini muddatlar bo'yicha tahlil qilish imkoni.

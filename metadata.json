@@ -1,0 +1,6 @@
+{
+  "name": "Salom Greeting",
+  "description": "A beautifully designed, ambient greeting application featuring peaceful micro-interactions.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
